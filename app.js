@@ -42,23 +42,45 @@ const createScatterPlot = (data) => {
 		.attr("width", w)
 		.attr("height", h);
 
-	console.log(
-		svg
-			.selectAll("circle")
-			.data(data)
-			.enter()
-			.append("circle")
-			.attr("cx", (d) => xScale(d[1]))
-			.attr("cy", (d) => yScale(d[0]))
-			.attr("r", 7)
-	);
-
 	svg
 		.selectAll("circle")
 		.data(data)
 		.enter()
 		.append("circle")
+		.attr("class", "dot")
+		.attr("data-xvalue", (d) => d[1])
+		.attr("data-yvalue", (d) => d[0])
 		.attr("cx", (d) => xScale(d[1]))
-		.attr("cy", (d) => yScale(d[2] / 60))
-		.attr("r", 5);
+		.attr("cy", (d) => yScale(d[0]))
+		.attr("fill", (d) => (d[4] === "" ? "#d3de32" : "#ffffdd"))
+		.attr("stroke", "#333333")
+		.attr("r", 5)
+		.on("mouseover", (d, i) => {
+			svg.append("tooltip");
+			tooltip.style.top = yScale(i[0]) - 30 + "px";
+			tooltip.style.left = xScale(i[1]) + 10 + "px";
+			tooltip.style.display = "block";
+			tooltip.setAttribute("data-year", i[1]);
+			tooltip.innerHTML = `${i[2]}: ${i[3]} <br> Year: ${
+				i[1]
+			}, Time: ${i[0].getMinutes()}:${i[0].getSeconds()} <br><br> ${i[4]}`;
+		})
+		.on("mouseout", () => {
+			tooltip.style.display = "none";
+		});
+
+	const xAxis = d3.axisBottom(xScale).tickFormat(d3.format("d"));
+	const yAxis = d3.axisLeft(yScale).tickFormat(d3.timeFormat("%M:%S"));
+
+	svg
+		.append("g")
+		.attr("transform", `translate(0, ${h - padding})`)
+		.attr("id", "x-axis")
+		.call(xAxis);
+
+	svg
+		.append("g")
+		.attr("transform", `translate(${padding}, 0)`)
+		.attr("id", "y-axis")
+		.call(yAxis);
 };
